@@ -47,7 +47,8 @@ fi
 mkdir_dir=`dirname "$GUILT_DIR/$branch/$newname"`
 [ "$mkdir_dir" != "$GUILT_DIR/$branch" ] && mkdir -p "$mkdir_dir"
 
-cp "$oldname" "$GUILT_DIR/$branch/$newname"
+# If you import HG MQ patch file. There are # at the beginning
+perl -ne 'print if !/^#/' < "$oldname" > "$GUILT_DIR/$branch/$newname"
 
 # insert the patch into the series file
 series_insert_patch "$newname"

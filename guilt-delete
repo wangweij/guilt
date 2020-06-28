@@ -3,7 +3,7 @@
 # Copyright (c) Josef "Jeff" Sipek, 2006-2013
 #
 
-USAGE="[-f] <patchname>"
+USAGE="[-k] <patchname>"
 if [ -z "$GUILT_VERSION" ]; then
 	echo "Invoking `basename "$0"` directly is no longer supported." >&2
 	exit 1
@@ -14,15 +14,15 @@ _main() {
 case $# in
 	1)
 		# just patchname
-		force=
+		keep=f
 		;;
 	2)
-		# -f patchname
-		if [ "$1" != "-f" ]; then
+		# -k patchname
+		if [ "$1" != "-k" ]; then
 			usage
 		fi
 
-		force=t
+		keep=t
 		shift
 		;;
 	*)
@@ -49,7 +49,7 @@ series_remove_patch "$patch"
 
 guilt_hook "delete" "$patch"
 
-[ ! -z "$force" ] && rm -f "$GUILT_DIR/$branch/$patch"
+[ "$keep" = "f" ] && rm -f "$GUILT_DIR/$branch/$patch"
 
 exit 0
 

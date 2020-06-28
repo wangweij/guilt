@@ -22,6 +22,8 @@ fi
 
 while [ $# -gt 0 ]; do
 	case "$1" in
+		-e)
+			edit=t ;;
 		--git)
 			gdiff=t ;;
 		--diffstat)
@@ -37,6 +39,9 @@ TOP=`get_top`
 if [ -z "$TOP" ]; then
 	die "No patches applied; try guilt push first"
 fi
+
+# Precisely, only edit the dscription. Editing the whole patch is also OK.
+[ "$edit" = "t" ] && git_editor "$GUILT_DIR/$branch/$TOP"
 
 refresh_patch "$TOP" "$gdiff" "$dstat"
 echo "Patch $TOP refreshed"
