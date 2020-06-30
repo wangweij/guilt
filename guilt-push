@@ -3,7 +3,7 @@
 # Copyright (c) Josef "Jeff" Sipek, 2006-2013
 #
 
-USAGE="[ -f ] [-a | --all | -n <num> | <patchname>]"
+USAGE="[ -f ] [ -3 ] [-a | --all | -n <num> | <patchname>]"
 if [ -z "$GUILT_VERSION" ]; then
 	echo "Invoking `basename "$0"` directly is no longer supported." >&2
 	exit 1
@@ -17,6 +17,9 @@ while [ $# -gt 0 ]; do
 	case "$1" in
 		-f)
 			abort_flag=""
+			;;
+		-3)
+			abort_flag="3way"
 			;;
 		-a|--all)
 			all=t
@@ -129,7 +132,7 @@ do
 	# bail if necessary
 	if [ $? -eq 0 ]; then
 		disp "Patch applied."
-	elif [ -z "$abort_flag" ]; then
+	elif [ "$abort_flag" = "" ]; then
 		die "Patch applied with rejects. Fix it up, and refresh."
 	else
 		die "To force apply this patch, use 'guilt push -f'"

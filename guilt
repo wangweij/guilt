@@ -665,6 +665,16 @@ commit()
 	)
 }
 
+red() {
+	echo "\033[1;37;41m$@\033[0m"
+}
+
+see_ctrl_c() {
+	git reset --hard > /dev/null 2>&1
+	echo "Abort push."
+	exit 1
+}
+
 # usage: push_patch patchname [bail_action]
 push_patch()
 {
@@ -684,10 +694,15 @@ push_patch()
 		# apply the patch if and only if there is something to apply
 		if [ `do_get_patch "$p" | wc -l` -gt 0 ]; then
 			if [ "$bail_action" = abort ]; then
-				reject=""
+				git apply $guilt_push_diff_context --index \
+					"$p" > /dev/null 2> "$TMP_LOG"
+			elif [ "$bail_action" = 3way ]; then
+				git apply $guilt_push_diff_context -3 --index \
+					"$p" > /dev/null 2> "$TMP_LOG"
+			else
+				git apply $guilt_push_diff_context --index \
+					--reject "$p" > /dev/null 2> "$TMP_LOG"
 			fi
-			git apply $guilt_push_diff_context --index \
-				$reject "$p" > /dev/null 2> "$TMP_LOG"
 			__push_patch_bail=$?
 
 			if [ $__push_patch_bail -ne 0 ]; then
@@ -695,6 +710,15 @@ push_patch()
 				if [ "$bail_action" = "abort" ]; then
 					rm -f "$TMP_LOG" "$TMP_MSG"
 					return $__push_patch_bail
+				elif [ "$bail_action" = 3way ]; then
+					red "Conflict find. Please resolve first and press enter."
+					red "Or press Ctrl-C to abort the push."
+					red "You probably need to press another enter after Ctrl-C."
+					# After press Ctrl-C, a command prompt shows and the trap
+					# function is called. The caller shows messages and stop
+					# there. Have to press enter to exit the process.
+					trap see_ctrl_c SIGINT
+					read -r _ </dev/tty 2> /dev/null
 				fi
 			fi
 		fi
